@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Happy Birthday!</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0b1a38;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 3.5rem;
+      color: #ff6b81;
+      margin-bottom: 10px;
+      text-shadow: 0 0 8px #ff6b81;
+    }
+    p {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #a0c4ff;
+    }
+    button {
+      background-color: #ff6b81;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4);
+      margin-bottom: 30px;
+    }
+    button:hover { background-color: #ff4c68; }
+    #wish {
+      font-size: 1.2rem;
+      color: #ffd6e8;
+      margin-bottom: 40px;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      max-width: 320px;
+    }
+
+    .heart {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      background-color: #ff6b81;
+      transform: rotate(-45deg);
+      left: 50%;
+      bottom: 0;
+      animation: floatUp linear forwards;
+      opacity: 0.8;
+      z-index: 10;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff6b81;
+      border-radius: 50%;
+    }
+    .heart::before { top: -10px; left: 0; }
+    .heart::after { top: 0; left: 10px; }
+    @keyframes floatUp {
+      0% {
+        transform: translateX(0) translateY(0) rotate(-45deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateX(var(--x)) translateY(-120vh) rotate(-45deg);
+        opacity: 0;
+      }
+    }
+
+    .slideshow {
+      width: 320px;
+      max-width: 90vw;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(255, 107, 129, 0.7);
+      position: relative;
+      user-select: none;
+      margin-bottom: 10px;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      will-change: transform;
+    }
+    .slides img {
+      width: 320px;
+      max-width: 100%;
+      border-radius: 15px;
+      pointer-events: none;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    #imageWish {
+      font-size: 1rem;
+      color: #ffb3c6;
+      min-height: 40px;
+      margin-bottom: 30px;
+      padding: 0 10px;
+      max-width: 320px;
+      user-select: none;
+    }
+
+    #countdown {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff6b81;
+      margin-bottom: 40px;
+      text-shadow: 0 0 8px #ff6b81;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      pointer-events: none;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 30;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <h1>Happy Birthday!</h1>
+    <p>Wishing you a day filled with love, joy, and laughter.</p>
+
+    <div id="countdown" aria-live="polite" aria-atomic="true" role="timer">Countdown: --:--:--:--</div>
+
+    <button id="showWishBtn" aria-controls="wish" aria-expanded="false">Show Your Surprise Wish 🎉</button>
+    <div id="wish" aria-live="polite" aria-atomic="true">May all your dreams come true! 🎂🎈</div>
+
+    <div class="slideshow" aria-label="Birthday photos slideshow">
+      <div class="slides" id="slides">
+        <img src="1.png" alt="Birthday photo 1" />
+        <img src="2.png" alt="Birthday photo 2" />
+        <img src="3.png" alt="Birthday photo 3" />
+        <img src="4.png" alt="Birthday photo 4" />
+        <img src="5.png" alt="Birthday photo 5" />
+        <img src="6.png" alt="Birthday photo 6" />
+        <img src="7.png" alt="Birthday photo 7" />
+        <img src="8.png" alt="Birthday photo 8" />
+        <img src="9.png" alt="Birthday photo 9" />
+        <img src="10.png" alt="Birthday photo 10" />
+      </div>
+    </div>
+    <div id="imageWish" aria-live="polite" aria-atomic="true">Your best wishes will appear here</div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+<script>
+  // --- Swipe Slideshow ---
+
+  const slides = document.getElementById('slides');
+  const images = slides.querySelectorAll('img');
+  const imageWish = document.getElementById('imageWish');
+
+  // Wishes matching each image
+  const wishes = [
+    "Wishing you endless happiness! 🎉",
+    "May your smile shine brighter today! 😊",
+    "Cheers to many more wonderful years! 🥂",
+    "Hope your day is as amazing as you! 🌟",
+    "Sending you love and warm hugs! 🤗",
+    "May all your dreams take flight! ✨",
+    "Keep shining, birthday star! ⭐",
+    "To health, wealth, and happiness! 💰",
+    "Celebrate big, laugh loud! 😂",
+    "You deserve all the best today! 🎁"
+  ];
+
+  let currentIndex = 0;
+  const totalImages = images.length;
+
+  // Set width dynamically based on first image
+  const slideWidth = images[0].clientWidth;
+
+  // Update slide position and wish text
+  function updateSlide() {
+    slides.style.transition = 'transform 0.4s ease-in-out';
+    slides.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+    imageWish.textContent = wishes[currentIndex];
+  }
+
+  // Initialize display
+  updateSlide();
+
+  // Swipe handling variables
+  let startX = 0;
+  let currentTranslate = 0;
+  let prevTranslate = 0;
+  let isDragging = false;
+
+  slides.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+    slides.style.transition = 'none';
+    prevTranslate = -currentIndex * slideWidth;
+  });
+
+  slides.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const deltaX = currentX - startX;
+    currentTranslate = prevTranslate + deltaX;
+    slides.style.transform = `translateX(${currentTranslate}px)`;
+  });
+
+  slides.addEventListener('touchend', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const movedBy = currentTranslate - prevTranslate;
+
+    // Minimum swipe distance threshold
+    const swipeThreshold = 50;
+
+    if (movedBy > swipeThreshold) {
+      // Swipe right, go to previous slide (wrap around)
+      currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+    } else if (movedBy < -swipeThreshold) {
+      // Swipe left, go to next slide (wrap around)
+      currentIndex = (currentIndex + 1) % totalImages;
+    }
+    updateSlide();
+  });
+
+  // --- Countdown Timer ---
+
+  const countdown = document.getElementById('countdown');
+
+  // Set your birthday here (YYYY, MM-1, DD, HH, MM, SS)
+  // Note: Months are zero-based (January = 0)
+  const birthday = new Date(2025, 11, 25, 0, 0, 0); // Example: Dec 25, 2025 midnight
+
+  function updateCountdown() {
+    const now = new Date();
+    let diff = birthday - now;
+
+    if (diff <= 0) {
+      countdown.textContent = "🎉 Happy Birthday! 🎉";
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    diff -= days * (1000 * 60 * 60 * 24);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    diff -= hours * (1000 * 60 * 60);
+    const minutes = Math.floor(diff / (1000 * 60));
+    diff -= minutes * (1000 * 60);
+    const seconds = Math.floor(diff / 1000);
+
+    countdown.textContent = `Countdown: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+
+
+</body>
+</html>
